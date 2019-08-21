@@ -14,6 +14,7 @@ public class DrawInstancedTask
     bool m_IsChangeMatPB_Float = false;
     bool m_IsChangeMatPB_Vec4 = false;
 
+    static Matrix4x4 mat4x4_s = new Matrix4x4();
     public void Init(Mesh mesh, Material material, string[] MatPB_Float = null, string[] MatPB_Vec4 = null)
     {
         m_Mesh = mesh;
@@ -63,19 +64,22 @@ public class DrawInstancedTask
         }
     }
     public void SetPos(uint id, Vector3 pos){
-        Matrix4x4 matrix4X4;
+        Matrix4x4 matrix4X4 = mat4x4_s;
         m_Matrix4x4s.GetValue(id, out matrix4X4);
         Matrix4x4Helper.SetMatrixPosition(ref matrix4X4, ref pos);
+        m_Matrix4x4s.SetValue(id, matrix4X4);
     }
     public void SetRot(uint id, Quaternion rot){
-        Matrix4x4 matrix4X4;
+        Matrix4x4 matrix4X4 = mat4x4_s;
         m_Matrix4x4s.GetValue(id, out matrix4X4);
         Matrix4x4Helper.SetMatrixRotation(ref matrix4X4, ref rot);
+        m_Matrix4x4s.SetValue(id, matrix4X4);
     }
     public void SetScale(uint id, Vector3 scale){
-        Matrix4x4 matrix4X4;
+        Matrix4x4 matrix4X4 = mat4x4_s;
         m_Matrix4x4s.GetValue(id, out matrix4X4);
         Matrix4x4Helper.SetMatrixScale(ref matrix4X4, ref scale);
+        m_Matrix4x4s.SetValue(id, matrix4X4);
     }
     public void SetMatPB_Float(uint id, string name, float value){
         m_MatPropertyBlock_Float[name].SetValue(id, value);
@@ -102,6 +106,10 @@ public class DrawInstancedTask
             }
             m_IsChangeMatPB_Vec4 = false;
         }
-        Graphics.DrawMeshInstanced(m_Mesh, 0, m_Material, m_Matrix4x4s.GetArray(), m_Matrix4x4s.Count, m_MatPB);
+        int count = m_Matrix4x4s.Count;
+        if (count > 0)
+        {
+            Graphics.DrawMeshInstanced(m_Mesh, 0, m_Material, m_Matrix4x4s.GetArray(), count, m_MatPB);
+        }
     }
 }

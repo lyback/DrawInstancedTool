@@ -5,6 +5,7 @@ public class FastList<T>
 {
     T[] m_Array;
     Dictionary<uint, int> m_IdtoIndex;
+    Dictionary<int, uint> m_IndextoId;
     int m_Count;
     public int Count
     {
@@ -20,33 +21,40 @@ public class FastList<T>
         m_Count = 0;
         m_Array = new T[count];
         m_IdtoIndex = new Dictionary<uint, int>(count);
+        m_IndextoId = new Dictionary<int, uint>(count);
     }
 
     public uint Add(T item)
     {
         m_Array[m_Count] = item;
-        m_Id += 1;
         m_IdtoIndex.Add(m_Id, m_Count);
-        m_Count += 1;
-        return m_Id;
+        m_IndextoId.Add(m_Count, m_Id);
+        m_Id++;
+        m_Count++;
+        return m_Id-1;
     }
     public void Remove(uint id)
     {
-        int index;
-        if (m_IdtoIndex.TryGetValue(id, out index))
+        int index_d;
+        int index_l = m_Count - 1;
+        if (m_IdtoIndex.TryGetValue(id, out index_d))
         {
-            if (index == m_Count - 1)
+            if (index_d == index_l)
             {
-                m_Array[m_Count - 1] = default(T);
-                m_Count = 0;
+                m_Array[index_d] = default(T);
             }
             else
             {
-                m_Array[index] = m_Array[m_Count - 1];
-                m_Array[m_Count - 1] = default(T);
-                m_Count -= 1;
+                m_Array[index_d] = m_Array[index_l];
+                m_Array[index_l] = default(T);
+                
+                uint id_l = m_IndextoId[index_l];
+                m_IdtoIndex[id_l] = index_d;
+                m_IndextoId[index_d] = id_l;
             }
+            m_Count -= 1;
             m_IdtoIndex.Remove(id);
+            m_IndextoId.Remove(index_l);
         }
     }
     public T[] GetArray(){

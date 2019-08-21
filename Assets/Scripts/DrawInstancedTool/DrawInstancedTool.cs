@@ -61,6 +61,10 @@ public class DrawInstancedTool : MonoBehaviour
     {
         return Instance.m_TastDic[taskName].Add(pos, Quaternion.identity, Vector3.one);
     }
+    public static uint AddRenderToTask(string taskName)
+    {
+        return Instance.m_TastDic[taskName].Add(Vector3.zero, Quaternion.identity, Vector3.one);
+    }
 
     public static void SetMatPB_FloatToTask(string taskName, uint id, string pbName, float value)
     {

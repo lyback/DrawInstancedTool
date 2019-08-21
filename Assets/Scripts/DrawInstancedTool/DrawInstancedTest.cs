@@ -4,35 +4,43 @@ using UnityEngine;
 
 public class DrawInstancedTest : MonoBehaviour {
 
-	public Mesh mesh;
-	public Material mat;
+	public bool alphaEnable = false;
+	public float speed = 1;
+	public Transform target;
+	public float angle;
 	public int count;
+	private uint id;
 	// Use this for initialization
-	void Start () {
-		DrawInstancedTool.AddTask("path", mesh, mat, new string[]{"_UV_Scale"}, new string[]{"_Color"});
-		
+	void Awake () {
+
+		DrawInstancedLuaHelper.AddTask_Route(new string[]{"_UV_Scale","_Speed","_AlphaEnable"}, new string[]{"_Color"});
 		for (int i = 0; i < count; i++)
 		{
-			float uv_Scale = Random.Range(1,10);
 			Vector3 pos = Random.insideUnitSphere;
-			uint id = DrawInstancedTool.AddRenderToTask("path", pos, Quaternion.Euler(new Vector3(90f,Random.Range(0f,360f),0f)), new Vector3(uv_Scale,1,1));
-			DrawInstancedTool.SetMatPB_FloatToTask("path", id, "_UV_Scale", uv_Scale);
-			DrawInstancedTool.SetMatPB_Vec4ToTask("path", id, "_Color", Random.ColorHSV());
+			id = DrawInstancedLuaHelper.AddRenderToTask_Route();
+			DrawInstancedLuaHelper.SetPosToTask_Route(id, 0, 0);
+			DrawInstancedLuaHelper.SetScaleToTask_Route(id, 10);
+			DrawInstancedLuaHelper.SetColorToTask_Route(id, 1,0,0);
 		}
 
-		DrawInstancedTool.AddTask("path2", mesh, mat, new string[]{"_UV_Scale"}, new string[]{"_Color"});
-		for (int i = 0; i < count; i++)
-		{
-			float uv_Scale = Random.Range(1,10);
-			Vector3 pos = Random.insideUnitSphere + Vector3.one*10f;
-			uint id = DrawInstancedTool.AddRenderToTask("path2", pos, Quaternion.Euler(new Vector3(90f,Random.Range(0f,360f),0f)), new Vector3(uv_Scale,1,1));
-			DrawInstancedTool.SetMatPB_FloatToTask("path2", id, "_UV_Scale", uv_Scale);
-			DrawInstancedTool.SetMatPB_Vec4ToTask("path2", id, "_Color", Random.ColorHSV());
-		}
+		// DrawInstancedLuaHelper.AddTask_Resource();
+		// for (int i = 0; i < count; i++)
+		// {
+		// 	id = DrawInstancedLuaHelper.AddRenderToTask_Resource();
+		// 	DrawInstancedLuaHelper.SetPosToTask_Resource(id, 0f, 0f, 0f);
+		// 	DrawInstancedLuaHelper.SetRotToTask_Resource(id, 0,0,0);
+		// 	DrawInstancedLuaHelper.SetScaleToTask_Resource(id, 1,1,1);
+		// }
 	}
 	
-	// // Update is called once per frame
-	// void Update () {
-	// 	task.Draw();
-	// }
+	// Update is called once per frame
+	void Update () {
+		var pos = target.position;
+		angle = -Mathf.Atan2(pos.z,pos.x)*Mathf.Rad2Deg;
+		DrawInstancedLuaHelper.SetTRSToTask_Route(id, 0, 0, angle, 10);
+		DrawInstancedLuaHelper.SetAlphaEnableToTask_Route(id, alphaEnable);
+		DrawInstancedLuaHelper.SetSpeedToTask_Route(id, speed);
+		DrawInstancedLuaHelper.SetColorToTask_Route(id, 1,0,0);
+		speed = speed + 0.001f;
+	}
 }
