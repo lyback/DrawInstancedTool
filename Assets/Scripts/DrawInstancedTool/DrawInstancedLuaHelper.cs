@@ -160,7 +160,7 @@ public class DrawInstancedLuaHelper
         if (!GridItemMatDic.ContainsKey(name))
         {
 #if TEST
-            mat = Resources.Load<Material>("food");
+            GridItemMatDic[name] = Resources.Load<Material>("food");
 #else
             LoadManager.Instance.LoadAsset("lworld/instanced", name, "mat", typeof(Material), (data) =>
             {
