@@ -3,3 +3,4 @@ DrawInstancedTool.sln
 .vscode/
 Library/
 obj/
+Temp/

@@ -7,14 +7,13 @@ public class DrawInstancedTask
     static int maxCount_s = 1023;
     Mesh m_Mesh;
     Material m_Material;
-    FastList<Matrix4x4> m_Matrix4x4s = new FastList<Matrix4x4>(maxCount_s);
+    FastListForMatrix4x4 m_Matrix4x4s = new FastListForMatrix4x4(maxCount_s);
     Dictionary<string, FastList<float>> m_MatPropertyBlock_Float = new Dictionary<string, FastList<float>>();
     Dictionary<string, FastList<Vector4>> m_MatPropertyBlock_Vec4 = new Dictionary<string, FastList<Vector4>>();
     MaterialPropertyBlock m_MatPB = new MaterialPropertyBlock();
     bool m_IsChangeMatPB_Float = false;
     bool m_IsChangeMatPB_Vec4 = false;
 
-    static Matrix4x4 mat4x4_s = new Matrix4x4();
     public void Init(Mesh mesh, Material material, string[] MatPB_Float = null, string[] MatPB_Vec4 = null)
     {
         m_Mesh = mesh;
@@ -36,11 +35,23 @@ public class DrawInstancedTask
             }
         }
     }
-
-    public uint Add(Vector3 pos, Quaternion rot, Vector3 scale)
+    public uint Add()
     {
         Matrix4x4 mat4x4 = new Matrix4x4();
-        Matrix4x4Helper.SetTRS(ref mat4x4, ref pos, ref rot, ref scale);
+        foreach (var kv in m_MatPropertyBlock_Float)
+        {
+            kv.Value.Add(0f);
+        }
+        foreach (var kv in m_MatPropertyBlock_Vec4)
+        {
+            kv.Value.Add(Vector4.one);
+        }
+        return m_Matrix4x4s.Add(mat4x4);
+    }
+    public uint Add(Vector3 p, Vector3 r, Vector3 s)
+    {
+        Matrix4x4 mat4x4 = new Matrix4x4();
+        Matrix4x4Helper.SetTRS(ref mat4x4, p, r, s);
         foreach (var kv in m_MatPropertyBlock_Float)
         {
             kv.Value.Add(0f);
@@ -63,29 +74,29 @@ public class DrawInstancedTask
             kv.Value.Remove(id);
         }
     }
-    public void SetPos(uint id, Vector3 pos){
-        Matrix4x4 matrix4X4 = mat4x4_s;
-        m_Matrix4x4s.GetValue(id, out matrix4X4);
-        Matrix4x4Helper.SetMatrixPosition(ref matrix4X4, ref pos);
-        m_Matrix4x4s.SetValue(id, matrix4X4);
+    public void SetPos(uint id, Vector3 pos)
+    {
+        m_Matrix4x4s.SetPos(id, pos);
     }
-    public void SetRot(uint id, Quaternion rot){
-        Matrix4x4 matrix4X4 = mat4x4_s;
-        m_Matrix4x4s.GetValue(id, out matrix4X4);
-        Matrix4x4Helper.SetMatrixRotation(ref matrix4X4, ref rot);
-        m_Matrix4x4s.SetValue(id, matrix4X4);
+    public void SetRotAndScale(uint id, Vector3 rot, Vector3 scale)
+    {
+        m_Matrix4x4s.SetRotAndScale(id, rot, scale);
     }
-    public void SetScale(uint id, Vector3 scale){
-        Matrix4x4 matrix4X4 = mat4x4_s;
-        m_Matrix4x4s.GetValue(id, out matrix4X4);
-        Matrix4x4Helper.SetMatrixScale(ref matrix4X4, ref scale);
-        m_Matrix4x4s.SetValue(id, matrix4X4);
+    public void SetRot(uint id, Vector3 rot)
+    {
+        m_Matrix4x4s.SetRotAndResetScale(id, rot);
     }
-    public void SetMatPB_Float(uint id, string name, float value){
+    public void SetScale(uint id, Vector3 scale)
+    {
+        m_Matrix4x4s.SetScaleAndResetRot(id, scale);
+    }
+    public void SetMatPB_Float(uint id, string name, float value)
+    {
         m_MatPropertyBlock_Float[name].SetValue(id, value);
         m_IsChangeMatPB_Float = true;
     }
-    public void SetMatPB_Vec4(uint id, string name, Vector4 value){
+    public void SetMatPB_Vec4(uint id, string name, Vector4 value)
+    {
         m_MatPropertyBlock_Vec4[name].SetValue(id, value);
         m_IsChangeMatPB_Vec4 = true;
     }
@@ -99,7 +110,8 @@ public class DrawInstancedTask
             }
             m_IsChangeMatPB_Float = false;
         }
-        if (m_IsChangeMatPB_Vec4){
+        if (m_IsChangeMatPB_Vec4)
+        {
             foreach (var kv in m_MatPropertyBlock_Vec4)
             {
                 m_MatPB.SetVectorArray(kv.Key, kv.Value.GetArray());
